@@ -4,7 +4,7 @@ require 'active_support'
 require 'active_support/test_case'
 require 'active_record'
 require 'ruby-debug'
-require 'query_aggregates'
+require 'data_miner'
 
 # Always handy...
 ActiveRecord::Base.logger = Logger.new("debug.log")

@@ -1,13 +1,11 @@
-# QueryAggregates
-module QueryAggregates
+module DataMiner
   module ClassMethods    
-    def query_aggregates(args = {}, &block)
+    def mine(args = {}, &block)
 
       # does exactly what it says it does...
-      fc = FunctionCatcher.new(self)
+      fc = FunctionCatcher.new(self)      
       fc.instance_eval(&block)
-      
-      self.find(:first, args.merge(:select => fc.to_select_string)).attributes      
+      fc.
     end
   end
   

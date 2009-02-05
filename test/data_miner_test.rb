@@ -1,6 +1,6 @@
 require 'test_helper'
 
-class QueryAggregatesTest < ActiveSupport::TestCase
+class DataMinerTest < ActiveSupport::TestCase
   # Replace this with your real tests.
   setup :generate_test_data
 
@@ -12,9 +12,9 @@ class QueryAggregatesTest < ActiveSupport::TestCase
   end
 
   test "query without conditions" do    
-    result_hash = Nimrod.query_aggregates do |q|
-      q.sum :length
-      q.count :all      
+    result_hash = Nimrod.mine do
+      sum :length
+      count :all      
     end    
     
     expected_length = @lengths.inject { |sum, l| sum + l }
