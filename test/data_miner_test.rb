@@ -19,11 +19,29 @@ class DataMinerTest < ActiveSupport::TestCase
     
     expected_length = @lengths.inject { |sum, l| sum + l }
     expected_count = @number_of_records
+      
+    assert_equal expected_count, result_hash[:count_all]
+    assert_equal expected_length, result_hash[:sum_length]        
+  end
+  
+  test "query with conditions" do
+    Nimrod.create(:length => 182455, :price => 0.0)
+    Nimrod.create(:length => 182455, :price => 50.0)
+    Nimrod.create(:length => 182455, :price => 100.0)    
+
+    result_hash = Nimrod.mine(:conditions => ["length = ?", 182455]) do
+      count :all
+      avg :price
+      min :price
+      max :price
+    end
     
-    ActiveRecord::Base.logger.debug { result_hash }
+    puts result_hash.inspect
     
-    assert_equal expected_count, result_hash["count_all"]
-    assert_equal expected_length, result_hash["sum_length"]        
+    assert_equal 3, result_hash[:count_all]
+    assert_equal 50, result_hash[:avg_price]
+    assert_equal 0, result_hash[:min_price]
+    assert_equal 100, result_hash[:max_price]
   end
 
   protected

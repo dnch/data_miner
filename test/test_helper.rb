@@ -22,7 +22,7 @@ ActiveRecord::Schema.define(:version => 1) do
 end
 
 class ActiveRecord::Base
-  include QueryAggregates
+  include DataMiner
 end
 
 
