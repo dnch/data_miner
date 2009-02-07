@@ -8,26 +8,67 @@ class DataMinerTest < ActiveSupport::TestCase
     assert_equal @number_of_records, @prices.length
     assert_equal @number_of_records, @lengths.length
     assert_equal @number_of_records, @solds.length
-    assert_equal @number_of_records, Nimrod.all.length       
+    assert_equal @number_of_records, Nimrod.all.length
   end
 
-  test "query without conditions" do    
+  test "query without conditions" do
     result_hash = Nimrod.mine do
       sum :length
-      count :all      
-    end    
-    
+      count :all
+    end
+
     expected_length = @lengths.inject { |sum, l| sum + l }
     expected_count = @number_of_records
-      
+
     assert_equal expected_count, result_hash[:count_all]
-    assert_equal expected_length, result_hash[:sum_length]        
+    assert_equal expected_length, result_hash[:sum_length]
   end
-  
+
+  test "multi-row result set" do
+    Nimrod.create(:length => 282455, :price => 0.0)
+    Nimrod.create(:length => 282455, :price => 50.0)
+    Nimrod.create(:length => 282455, :price => 100.0)
+
+    Nimrod.create(:length => 913943, :price => 200.0)
+    Nimrod.create(:length => 913943, :price => 200.0)
+    Nimrod.create(:length => 913943, :price => 200.0)
+
+    Nimrod.create(:length => 1321313, :price => 400.0)
+    Nimrod.create(:length => 1321313, :price => 300.0)
+    Nimrod.create(:length => 1321313, :price => 200.0)
+
+    Nimrod.create(:length => 54848408, :price => 8.0)
+    Nimrod.create(:length => 54848408, :price => 6.0)
+    Nimrod.create(:length => 54848408, :price => 4.0)
+
+    results = Nimrod.mine(:conditions => ["length >= ?", 282455], :group => "length", :order => "length asc") do
+      sum :price
+      avg :price
+      count :all
+    end
+    
+    assert_equal 4, results.length
+    assert_equal 150.0, results[0][:sum_price]
+    assert_equal 50.0, results[0][:avg_price]    
+    assert_equal 3, results[0][:count_all]
+
+    assert_equal 600.0, results[1][:sum_price]
+    assert_equal 200.0, results[1][:avg_price]    
+    assert_equal 3, results[1][:count_all]
+
+    assert_equal 900.0, results[2][:sum_price]
+    assert_equal 300.0, results[2][:avg_price]    
+    assert_equal 3, results[2][:count_all]
+
+    assert_equal 18.0, results[3][:sum_price]
+    assert_equal 6.0, results[3][:avg_price]    
+    assert_equal 3, results[3][:count_all]
+  end
+
   test "query with conditions" do
     Nimrod.create(:length => 182455, :price => 0.0)
     Nimrod.create(:length => 182455, :price => 50.0)
-    Nimrod.create(:length => 182455, :price => 100.0)    
+    Nimrod.create(:length => 182455, :price => 100.0)
 
     result_hash = Nimrod.mine(:conditions => ["length = ?", 182455]) do
       count :all
@@ -35,9 +76,7 @@ class DataMinerTest < ActiveSupport::TestCase
       min :price
       max :price
     end
-    
-    puts result_hash.inspect
-    
+
     assert_equal 3, result_hash[:count_all]
     assert_equal 50, result_hash[:avg_price]
     assert_equal 0, result_hash[:min_price]
@@ -47,12 +86,12 @@ class DataMinerTest < ActiveSupport::TestCase
   protected
   def generate_test_data
     # clear out test data
-    Nimrod.delete_all    
-    
+    Nimrod.delete_all
+
     # create our sample data (between 10 and 110 records)
     @number_of_records = 10 + rand(100)
 
-    # track these so we can 
+    # track these so we can
     @prices  = []
     @lengths = []
     @solds   = []
@@ -61,7 +100,7 @@ class DataMinerTest < ActiveSupport::TestCase
       @prices << (rand * 300) + 1.0
       @lengths << rand(500)
       @solds << rand(2).zero?
-      
+
       Nimrod.create do |nimrod|
         nimrod.price = @prices.last
         nimrod.length = @lengths.last

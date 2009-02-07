@@ -13,7 +13,7 @@ module DataMiner
         throw MissingOrUnknownFieldNameException.new
       else  
         refiner = Refiner.new(sym, args)              
-        @caught_functions[refiner.result_label] = refiner
+        @caught_functions[refiner.result_label.to_sym] = refiner
       end    
     end
 
@@ -23,16 +23,22 @@ module DataMiner
       select_sql_fragment = @caught_functions.values.map { |r| r.sql_fragment }.join(", ")
 
       # make our call...
-      raw_results = @parent_class.find(:all, @args_for_find_call.merge(:select => select_sql_fragment)).attributes
-
-      clean_results = {}
+      raw_results = @parent_class.find(:all, @args_for_find_call.merge(:select => select_sql_fragment))
 
       # run our post-search procs on the results
-      raw_results.each do |k, v|
-        clean_results[k.to_sym] = @caught_functions[k].after_proc.call(v)
+      result_array = raw_results.map do |r|
+        
+        # transform each AR:B instance into a simple hash that we've post-processed
+        r.attributes.inject({}) do |memo, pair|          
+          key = pair.first.to_sym
+          val = pair.last
+                
+          memo.merge(key => @caught_functions[key].after_proc.call(val))
+        end
       end
 
-      return clean_results
+      # if we've only got one result in the array, return it
+      result_array.length > 1 ? result_array : result_array.first
     end
   end  
 end
