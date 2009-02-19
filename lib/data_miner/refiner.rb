@@ -28,7 +28,7 @@ module DataMiner
     
     # TODO - incorpoate AR's sql sanitising, just in case...
     def sql_fragment
-      "#{@function.upcase}(#{@field}) as #{@result_label.to_s}"
+      "#{@function.upcase}(#{@field.to_sym == :all ? "*" : @field}) as #{@result_label.to_s}"
     end
   end
 end
