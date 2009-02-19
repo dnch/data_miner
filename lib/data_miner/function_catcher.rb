@@ -21,6 +21,11 @@ module DataMiner
     def go    
       # Build our SQL from each Refiner
       select_sql_fragment = @caught_functions.values.map { |r| r.sql_fragment }.join(", ")
+      
+      # we should include these fields in our query
+      if @args_for_find_call[:group]
+        select_sql_fragment << ", #{@args_for_find_call[:group]}"
+      end
 
       # make our call...
       raw_results = @parent_class.find(:all, @args_for_find_call.merge(:select => select_sql_fragment))
@@ -32,8 +37,9 @@ module DataMiner
         r.attributes.inject({}) do |memo, pair|          
           key = pair.first.to_sym
           val = pair.last
-                
-          memo.merge(key => @caught_functions[key].after_proc.call(val))
+          
+          # if this field relates to one of our called functions, call it's after_proc method, else just store it
+          memo.merge(key => @caught_functions[key] ? @caught_functions[key].after_proc.call(val) : val)
         end
       end
 

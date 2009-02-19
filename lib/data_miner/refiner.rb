@@ -2,9 +2,9 @@ module DataMiner
   class Refiner  
     attr_accessor :result_label, :after_proc, :field, :function
     
-    def initialize(function, *args)
+    def initialize(function, args)
       @function = function.to_s
-      @field    = args[0].to_s
+      @field    = args.first
       @options  = args[1] || {}
       
       @result_label = @options[:as] || default_result_label

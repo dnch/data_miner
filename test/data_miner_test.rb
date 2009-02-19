@@ -48,18 +48,22 @@ class DataMinerTest < ActiveSupport::TestCase
     end
     
     assert_equal 4, results.length
+    assert_equal 282455, results[0][:length]
     assert_equal 150.0, results[0][:sum_price]
     assert_equal 50.0, results[0][:avg_price]    
     assert_equal 3, results[0][:count_all]
 
+    assert_equal 913943, results[1][:length]
     assert_equal 600.0, results[1][:sum_price]
     assert_equal 200.0, results[1][:avg_price]    
     assert_equal 3, results[1][:count_all]
 
+    assert_equal 1321313, results[2][:length]
     assert_equal 900.0, results[2][:sum_price]
     assert_equal 300.0, results[2][:avg_price]    
     assert_equal 3, results[2][:count_all]
 
+    assert_equal 54848408, results[3][:length]
     assert_equal 18.0, results[3][:sum_price]
     assert_equal 6.0, results[3][:avg_price]    
     assert_equal 3, results[3][:count_all]
@@ -75,12 +79,18 @@ class DataMinerTest < ActiveSupport::TestCase
       avg :price
       min :price
       max :price
+      max :price, :as => "el_maximo"
+      max :price, :as => "el_maximo_grande", :after => lambda { |x| x.to_f * 60 }
+      max :price, :as => "el_maximo_grande_proc", :after => Proc.new { |x| x.to_f * 60 }
     end
 
     assert_equal 3, result_hash[:count_all]
     assert_equal 50, result_hash[:avg_price]
     assert_equal 0, result_hash[:min_price]
     assert_equal 100, result_hash[:max_price]
+    assert_equal 100, result_hash[:el_maximo]
+    assert_equal 6000, result_hash[:el_maximo_grande]
+    assert_equal 6000, result_hash[:el_maximo_grande_proc]
   end
 
   protected
